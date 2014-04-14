@@ -1,0 +1,26 @@
+{
+  "family": "moe",
+  "name": "simpleSlider",
+  "version": "0.0.1",
+  "description": "simple images slider",
+  "homepage": "https://github.com/lizheng/simpleSlider",
+  "author": "airyland",
+  "maintainers": [
+    "airyland"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lizheng/simpleSlider.git"
+  },
+  "bugs": {
+    "url": ""
+  },
+  "keywords": [],
+  "licenses": "MIT",
+  "spm": {
+    "output": ["simpleSlider.js"],
+    "alias": {},
+    "devAlias": {},
+    "engines": {}
+  }
+}
