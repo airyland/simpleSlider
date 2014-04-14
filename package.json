@@ -3,14 +3,14 @@
   "name": "simpleSlider",
   "version": "0.0.1",
   "description": "simple images slider",
-  "homepage": "https://github.com/lizheng/simpleSlider",
+  "homepage": "https://github.com/airyland/simpleSlider",
   "author": "airyland",
   "maintainers": [
     "airyland"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/lizheng/simpleSlider.git"
+    "url": "git://github.com/airyland/simpleSlider.git"
   },
   "bugs": {
     "url": ""
