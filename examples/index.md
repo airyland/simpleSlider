@@ -63,7 +63,8 @@ seajs.use('simpleSlider', function(simpleSlider){
     var slider = new simpleSlider({
         target:'#slider_img',
         interval: 1000,
-        dotsContainer:'.dots'
+        dotsContainer:'.dots',
+        auto:true
     });
     slider.on('next',function(index){
         console.log('next',index);

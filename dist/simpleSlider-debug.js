@@ -16,7 +16,6 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1
     };
     // init
     simpleSlider.prototype.init = function(option) {
-        console.log(option);
         var _this = this;
         $.extend(defaultOpt, option);
         this.option = defaultOpt;
@@ -35,7 +34,11 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1
             _this.stop();
             _this.prev();
         });
-        this.autoGo();
+        // if set auto
+        if (this.option.auto) {
+            this.autoGo();
+        }
+        // build dots
         this._buildDots();
     };
     simpleSlider.prototype._buildDots = function() {
@@ -46,13 +49,12 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1
             var len = this.length;
             var i = 1;
             while (i <= len) {
-                html += '<ul class="slider_dots"><li><span class="dot"></span></li>';
+                html += '<ul class="slider_dots"><li class="dot-item"><span class="dot"></span></li>';
                 i++;
             }
             html += "</ul>";
             $dotsContainer.html(html);
             var $lis = $dotsContainer.find("ul>li");
-            console.log($lis);
             $lis.on("click mouseover", function() {
                 var index = $(this).index();
                 $lis.eq(index).find(".dot").css({
@@ -96,10 +98,11 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1
     simpleSlider.prototype.stop = function() {
         var _this = this;
         this.trigger("stop", this.curr);
-        // 清除自动播放
+        // stop auto switch
         clearTimeout(this.timeout);
-        // 停止动画
+        // stop animation
         this.target.stop();
+        //
         this.timeout = setTimeout(function() {
             _this.autoGo();
         }, _this.interval);
@@ -107,7 +110,6 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1
     simpleSlider.prototype.resume = function() {
         this.trigger("resume", this.curr);
     };
-    simpleSlider.prototype.css = function(index) {};
     simpleSlider.prototype.autoGo = function() {
         var _this = this;
         this.curr++;
