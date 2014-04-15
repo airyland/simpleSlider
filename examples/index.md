@@ -66,6 +66,7 @@ seajs.use('simpleSlider', function(simpleSlider){
         dotsContainer:'.dots',
         auto:true,
         speed:1000
+        auto:true
     });
     /**
     slider.on('next',function(index){
