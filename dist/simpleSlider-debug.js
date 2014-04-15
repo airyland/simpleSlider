@@ -62,18 +62,14 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "arale/events/1.1.0/events
                 _this.stop();
                 _this.setDotCss(index);
                 _this.goto(index);
-                _this.delayTimeout = setTimeout(function() {
-                    _this.resume();
-                }, _this.option.interval + _this.option.speed);
+                _this.resume();
             });
             // stop animation when hover over
             // do not stop until image reaches to the edge
             this.$target.mouseenter(function() {
                 clearTimeout(_this.timeout);
             }).mouseleave(function() {
-                _this.delayTimeout = setTimeout(function() {
-                    _this.resume();
-                }, _this.option.interval);
+                _this.resume();
             });
         }
     };
