@@ -65,7 +65,7 @@ seajs.use('simpleSlider', function(simpleSlider){
         interval: 1000,
         dotsContainer:'.dots',
         auto:true,
-        speed:1000
+        speed:1000,
         auto:true
     });
     /**
