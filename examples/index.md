@@ -34,8 +34,8 @@
 <div class="sliders">
     <img src="../src/sliders.png" alt="" id="slider_img">
 </div>
-<a href="javascript:" data-action="next">下一个</a>
 <a href="javascript:" data-action="prev">上一个</a>
+<a href="javascript:" data-action="next">下一个</a>
 <div class="dots">
 <!--    <ul class="slider_dots">
  <li><span class="dot"></span></li>
@@ -63,10 +63,19 @@ seajs.use('simpleSlider', function(simpleSlider){
     var slider = new simpleSlider({
         target:'#slider_img',
         interval: 1000,
-        dotsContainer:'.dots'
+        dotsContainer:'.dots',
+        auto:true,
+        speed:1000
     });
+    /**
     slider.on('next',function(index){
         console.log('next',index);
+    }).on('resume',function(){
+    console.log('resume');
     })
+    **/
+    slider.on('all',function(arg1,arg2){
+        console.log(arg1,arg2);
+    });
 });
 ````

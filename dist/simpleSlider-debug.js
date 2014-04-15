@@ -1,4 +1,7 @@
 define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1.1.0/events-debug" ], function(require, exports, module) {
+    /**
+     * 1. stop animation when hover
+     */
     var $ = require("$-debug");
     var Events = require("arale/events/1.1.0/events-debug");
     $.extend($.easing, {
@@ -16,26 +19,26 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1
     };
     // init
     simpleSlider.prototype.init = function(option) {
-        console.log(option);
         var _this = this;
         $.extend(defaultOpt, option);
         this.option = defaultOpt;
-        this.target = $(this.option.target);
+        this.$target = $(this.option.target);
         this.curr = 0;
-        this.interval = this.option.interval || null;
         this.length = 5;
         // bind prev and next btn
         var $next = $('[data-action="next"]');
         var $prev = $('[data-action="prev"]');
         $next.on("click", function() {
-            _this.stop();
             _this.next();
         });
         $prev.on("click", function() {
-            _this.stop();
             _this.prev();
         });
-        this.autoGo();
+        // if set auto
+        if (this.option.auto) {
+            this.autoGo();
+        }
+        // build dots
         this._buildDots();
     };
     simpleSlider.prototype._buildDots = function() {
@@ -46,75 +49,91 @@ define("moe/simpleSlider/0.0.1/simpleSlider-debug", [ "$-debug", "arale/events/1
             var len = this.length;
             var i = 1;
             while (i <= len) {
-                html += '<ul class="slider_dots"><li><span class="dot"></span></li>';
+                html += '<ul class="slider_dots"><li class="dot-item"><span class="dot"></span></li>';
                 i++;
             }
             html += "</ul>";
             $dotsContainer.html(html);
-            var $lis = $dotsContainer.find("ul>li");
-            console.log($lis);
-            $lis.on("click mouseover", function() {
-                var index = $(this).index();
-                $lis.eq(index).find(".dot").css({
-                    backgroundColor: "purple"
-                }).end().siblings().find(".dot").css({
-                    backgroundColor: "red"
-                });
+            var $lis = $dotsContainer.find("li.dot-item");
+            _this.$dotItems = $lis;
+            $lis.on("click mouseenter", function() {
+                var index = $(this).index(".slider_dots>li.dot-item");
+                _this.curr = index;
                 _this.stop();
+                _this.setDotCss(index);
                 _this.goto(index);
+                _this.delayTimeout = setTimeout(function() {
+                    _this.resume();
+                }, _this.option.interval + _this.option.speed);
             });
         }
     };
+    simpleSlider.prototype.setDotCss = function(index) {
+        this.$dotItems.find(".dot").css({
+            backgroundColor: "red"
+        });
+        this.$dotItems.eq(index).find(".dot").css({
+            backgroundColor: "purple"
+        });
+    };
     simpleSlider.prototype.goto = function(index) {
-        this.trigger("switch", this.curr);
+        var _this = this;
         if (index >= 5) {
             this.curr = index = 0;
         }
         if (index <= -1) {
             this.curr = index = 4;
         }
-        this.target.animate({
+        this.trigger("switch::start", _this.curr);
+        this.$target.animate({
             left: -index * 224
-        }, 1e3, "easeOutQuad", function() {
-            $(".slider_dots>li").eq(index).find(".dot").css({
-                backgroundColor: "purple"
-            }).end().siblings().find(".dot").css({
+        }, this.option.speed, "easeOutQuad", function() {
+            _this.trigger("switch::done", _this.curr);
+            _this.$dotItems.find(".dot").css({
                 backgroundColor: "red"
+            });
+            _this.$dotItems.eq(index).find(".dot").css({
+                backgroundColor: "purple"
             });
         });
     };
     simpleSlider.prototype.next = function() {
         this.trigger("next", this.curr);
+        this.stop();
         this.curr++;
         this.goto(this.curr);
+        this.resume();
     };
     simpleSlider.prototype.prev = function() {
         this.trigger("prev", this.curr);
+        this.stop();
         this.curr--;
         this.goto(this.curr);
+        this.resume();
     };
     simpleSlider.prototype.stop = function() {
         var _this = this;
-        this.trigger("stop", this.curr);
-        // 清除自动播放
-        clearTimeout(this.timeout);
-        // 停止动画
-        this.target.stop();
-        this.timeout = setTimeout(function() {
-            _this.autoGo();
-        }, _this.interval);
+        this.trigger("stop", _this.curr);
+        // stop auto switch
+        clearTimeout(_this.timeout);
+        clearTimeout(_this.delayTimeout);
+        // stop animation
+        this.$target.stop();
     };
     simpleSlider.prototype.resume = function() {
-        this.trigger("resume", this.curr);
+        var _this = this;
+        if (this.option.auto) {
+            this.trigger("resume", _this.curr);
+            _this.autoGo();
+        }
     };
-    simpleSlider.prototype.css = function(index) {};
     simpleSlider.prototype.autoGo = function() {
         var _this = this;
-        this.curr++;
-        this.goto(_this.curr);
+        _this.curr++;
+        _this.goto(_this.curr);
         _this.timeout = setTimeout(function() {
             _this.autoGo();
-        }, _this.interval);
+        }, _this.option.interval + _this.option.speed);
     };
     module.exports = simpleSlider;
 });
