@@ -1,31 +1,54 @@
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     /**
-     * 1. stop animation when hover
+     * @todo
+     * 1.set start index
+     * 2.circle option
      */
     var $ = jQuery;
     var Events = require('arale/events/1.1.0/events');
+
+    // if support css3 translate
+
     $.extend($.easing, {
-        easeOutQuad: function(x, t, b, c, d) {
+        easeOutQuad: function (x, t, b, c, d) {
             return -c * (t /= d) * (t - 2) + b;
         }
     });
 
-    var simpleSlider = function(option) {
+    // constructor
+    var simpleSlider = function (option) {
         return this.init(option);
     };
 
     Events.mixTo(simpleSlider);
 
     var defaultOpt = {
-        auto: true,
-        interval: 2000
+        auto: true,  // auto play
+        speed: 1000,// animation duratin
+        interval: 2000, // time delay
+        easing: 'linear',// easing
+        leftDisabledClass: '',// when scroll to the first one, add the class
+        rightDisabledClass: '',// when scroll to the last one, add the class
+        box: '#moe-slider-box', // sliders box, used for select prev and next button
+        item: '>.slider-wrap>li',
+        dotsContainer: '',// if specified, create dots list in the container,
+        dotsEasing: 'linear',// can be styled in css or specified hear,
+        dotsActiveClass: 'moe-dot-active',// dot active class
+        dotsTriggerEvent: 'click',
+        mod: 'images', // 'singleImage','images'
+        startIndex: 0,// first show one
+        circular: true // if play circular,if true, ignore leftDisabledClass and not trigger relative events
+    };
+
+    var singleImageSwitch = function () {
+
     };
 
     // init
-    simpleSlider.prototype.init = function(option) {
+    simpleSlider.prototype.init = function (option) {
         var _this = this;
         $.extend(defaultOpt, option);
-        this.option = defaultOpt;
+        this.option = this.o = defaultOpt;
         this.$target = $(this.option.target);
         this.curr = 0;
         this.length = 5;
@@ -34,24 +57,25 @@ define(function(require, exports, module) {
         var $next = $('[data-action="next"]');
         var $prev = $('[data-action="prev"]');
 
-        $next.on('click', function() {
+        $next.on('click', function () {
             _this.next();
         });
 
-        $prev.on('click', function() {
+        $prev.on('click', function () {
             _this.prev();
         });
 
-        // if set auto
+        // if set autoplay
         if (this.option.auto) {
-            this.autoGo();
+            setTimeout(function () {
+                _this.autoGo();
+            }, this.o.interval);
         }
-
         // build dots
         this._buildDots();
     };
 
-    simpleSlider.prototype._buildDots = function() {
+    simpleSlider.prototype._buildDots = function () {
         var _this = this;
         if (this.option.dotsContainer) {
             var $dotsContainer = $(this.option.dotsContainer);
@@ -65,9 +89,15 @@ define(function(require, exports, module) {
             html += '</ul>';
             $dotsContainer.html(html);
             var $lis = $dotsContainer.find('li.dot-item');
+            $lis.find('.dot').css({
+                'webkit-transition': 'all 200ms ' + this.o.dotsEasing
+            });
             _this.$dotItems = $lis;
 
-            $lis.on('click mouseenter', function() {
+            // set the first dot as active
+            this.setDotCss(0);
+
+            $lis.on(_this.o.dotsTriggerEvent, function () {
                 var index = $(this).index('.slider_dots>li.dot-item');
                 _this.curr = index;
                 _this.stop();
@@ -78,15 +108,21 @@ define(function(require, exports, module) {
 
             // stop animation when hover over
             // do not stop until image reaches to the edge
-            this.$target.mouseenter(function() {
+            this.$target.mouseenter(function () {
                 clearTimeout(_this.timeout);
-            }).mouseleave(function() {
-                _this.resume();
-            });
+            }).mouseleave(function () {
+                    _this.resume();
+                });
         }
     };
 
-    simpleSlider.prototype.setDotCss = function(index) {
+    simpleSlider.prototype.setDotCss = function (index) {
+        if (!this.o.dotsContainer) {
+            return;
+        }
+        // switch dot class
+        this.$dotItems.find('.dot').removeClass(this.o.dotsActiveClass).end().eq(index).find('.dot').addClass(this.o.dotsActiveClass);
+
         this.$dotItems.find('.dot').css({
             backgroundColor: 'red'
         });
@@ -96,7 +132,7 @@ define(function(require, exports, module) {
         });
     };
 
-    simpleSlider.prototype.goto = function(index) {
+    simpleSlider.prototype.goto = function (index) {
         var _this = this;
         if (index >= 5) {
             this.curr = index = 0;
@@ -110,21 +146,17 @@ define(function(require, exports, module) {
 
         this.$target.animate({
             left: -index * 224
-        }, this.option.speed, 'easeOutQuad', function() {
-            _this.trigger('switch::done', _this.curr);
-
-            _this.$dotItems.find('.dot').css({
-                backgroundColor: 'red'
-            });
-
-            _this.$dotItems.eq(index).find('.dot').css({
-                backgroundColor: 'purple'
-            });
-
+        }, {
+            duration: _this.option.speed,
+            easing: _this.o.easing,
+            complete: function () {
+                _this.trigger('switch::done', _this.curr);
+                _this.setDotCss(_this.curr);
+            }
         });
     };
 
-    simpleSlider.prototype.next = function() {
+    simpleSlider.prototype.next = function () {
         this.trigger('next', this.curr);
         this.stop();
         this.curr++;
@@ -132,40 +164,45 @@ define(function(require, exports, module) {
         this.resume();
     };
 
-    simpleSlider.prototype.prev = function() {
+    simpleSlider.prototype.prev = function () {
         this.trigger('prev', this.curr);
         this.stop();
         this.curr--;
         this.goto(this.curr);
         this.resume();
+        return this;
     };
 
-    simpleSlider.prototype.stop = function() {
-        var _this = this;
-        this.trigger('stop', _this.curr);
+    simpleSlider.prototype.stop = function () {
         // stop auto switch
-        clearTimeout(_this.timeout);
-        clearTimeout(_this.delayTimeout);
+        clearTimeout(this.timeout);
+        clearTimeout(this.delayTimeout);
         // stop animation
-        this.$target.stop();
+        if (this.$target.is(':animated')) {
+            this.$target.stop();
+        }
+        this.trigger('stop', this.curr);
+        return this;
     };
 
-    simpleSlider.prototype.resume = function() {
+    simpleSlider.prototype.resume = function () {
         var _this = this;
         if (this.option.auto) {
             this.trigger('resume', _this.curr);
-            _this.delayTimeout = setTimeout(function() {
+            _this.delayTimeout = setTimeout(function () {
                 _this.autoGo();
             }, _this.option.interval + _this.option.speed);
 
         }
     };
 
-    simpleSlider.prototype.autoGo = function() {
+    simpleSlider.prototype.start = simpleSlider.prototype.resume;
+
+    simpleSlider.prototype.autoGo = function () {
         var _this = this;
         _this.curr++;
         _this.goto(_this.curr);
-        _this.timeout = setTimeout(function() {
+        _this.timeout = setTimeout(function () {
             _this.autoGo();
         }, _this.option.interval + _this.option.speed);
     };

@@ -31,29 +31,14 @@
     </style>
 
 ````html
-<div class="sliders">
-    <img src="../src/sliders.png" alt="" id="slider_img">
+<div id="moe-slider-box">
+    <div class="sliders">
+        <img src="../src/sliders.png" alt="" id="slider_img">
+    </div>
+    <a href="javascript:" data-action="prev">上一个</a>
+    <a href="javascript:" data-action="next">下一个</a>
+    <div class="dots"></div>
 </div>
-<a href="javascript:" data-action="prev">上一个</a>
-<a href="javascript:" data-action="next">下一个</a>
-<div class="dots">
-<!--    <ul class="slider_dots">
- <li><span class="dot"></span></li>
- <li>
-     <span class="dot">
- </li>
- <li>
-     <span class="dot">
- </li>
- <li>
-     <span class="dot">
- </li>
- <li>
-     <span class="dot">
- </li>
-</ul>  -->
-</div>
-
 <div style="clear:both;"></div>
 ````
 
@@ -63,11 +48,13 @@ seajs.use('simpleSlider', function(simpleSlider){
     console.log(simpleSlider);
     var slider = new simpleSlider({
         target:'#slider_img',
-        interval: 1000,
+        interval: 2000,
         dotsContainer:'.dots',
         auto:true,
         speed:1000,
-        auto:true
+        easing:'easeOutQuad',
+        dotsActiveClass:'moe-dot-active',
+        dotsTriggerEvent:'click mouseenter'
     });
     /**
     slider.on('next',function(index){
