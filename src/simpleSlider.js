@@ -6,8 +6,66 @@ define(function (require, exports, module) {
      */
     var $ = jQuery;
     var Events = require('arale/events/1.1.0/events');
+    // check if support css3 animation
+    var supportAnimation = typeof history.pushState === "function";
+    // css3 transition map
+    var transitionMap = {
+        'linear': 'linear',
+        '_default': 'ease',
+        'ease-in': 'ease-in',
+        'ease-out': 'ease-out',
+        'ease-in-out': 'ease-in-out',
+        'snap': 'cubic-bezier(0,1,.5,1)',
+        // Penner equations
+        'easeOutCubic': 'cubic-bezier(.215,.61,.355,1)',
+        'easeInOutCubic': 'cubic-bezier(.645,.045,.355,1)',
+        'easeInCirc': 'cubic-bezier(.6,.04,.98,.335)',
+        'easeOutCirc': 'cubic-bezier(.075,.82,.165,1)',
+        'easeInOutCirc': 'cubic-bezier(.785,.135,.15,.86)',
+        'easeInExpo': 'cubic-bezier(.95,.05,.795,.035)',
+        'easeOutExpo': 'cubic-bezier(.19,1,.22,1)',
+        'easeInOutExpo': 'cubic-bezier(1,0,0,1)',
+        'easeInQuad': 'cubic-bezier(.55,.085,.68,.53)',
+        'easeOutQuad': 'cubic-bezier(.25,.46,.45,.94)',
+        'easeInOutQuad': 'cubic-bezier(.455,.03,.515,.955)',
+        'easeInQuart': 'cubic-bezier(.895,.03,.685,.22)',
+        'easeOutQuart': 'cubic-bezier(.165,.84,.44,1)',
+        'easeInOutQuart': 'cubic-bezier(.77,0,.175,1)',
+        'easeInQuint': 'cubic-bezier(.755,.05,.855,.06)',
+        'easeOutQuint': 'cubic-bezier(.23,1,.32,1)',
+        'easeInOutQuint': 'cubic-bezier(.86,0,.07,1)',
+        'easeInSine': 'cubic-bezier(.47,0,.745,.715)',
+        'easeOutSine': 'cubic-bezier(.39,.575,.565,1)',
+        'easeInOutSine': 'cubic-bezier(.445,.05,.55,.95)',
+        'easeInBack': 'cubic-bezier(.6,-.28,.735,.045)',
+        'easeOutBack': 'cubic-bezier(.175, .885,.32,1.275)',
+        'easeInOutBack': 'cubic-bezier(.68,-.55,.265,1.55)'
+    };
+    // translate function
+    var translate = function ($target, key, value) {
+            var valueTransform = "translate" + key + "(" + value + ")";
+            console.log(valueTransform);
 
-    // if support css3 translate
+            supportAnimation &&
+            $target.css("webkitTransform", valueTransform).css("transform", valueTransform)// :
+            // $target.css(key == "X" ? { left: value } : { top: value });
+        },
+        transition = function (target, duration, isReset) {
+            var transform = "transform " + duration + "ms linear";
+            if (supportAnimation == false) return;
+            // CSS3 transition设置
+            if (isReset == true) {
+                target.css("webkitTransition", "none").css("transition", "none")
+                    .data("hasTransition", false);
+            } else if (!target.data("hasTransition")) {
+                target.css({
+                    webkitTransition: "-webkit-" + transform,
+                    webkitBackfaceVisibility: "hidden",
+                    transition: transform,
+                    BackfaceVisibility: "hidden"
+                }).data("hasTransition", true);
+            }
+        };
 
     $.extend($.easing, {
         easeOutQuad: function (x, t, b, c, d) {
@@ -35,9 +93,10 @@ define(function (require, exports, module) {
         dotsEasing: 'linear',// can be styled in css or specified hear,
         dotsActiveClass: 'moe-dot-active',// dot active class
         dotsTriggerEvent: 'click',
-        mod: 'images', // 'singleImage','images'
+        mode: 'images', // 'singleImage','images'
         startIndex: 0,// first show one
-        circular: true // if play circular,if true, ignore leftDisabledClass and not trigger relative events
+        circular: true, // if play circular,if true, ignore leftDisabledClass and not trigger relative events
+        hoverStop: true   // if stop playing when hover on the slider
     };
 
     var singleImageSwitch = function () {
@@ -49,9 +108,10 @@ define(function (require, exports, module) {
         var _this = this;
         $.extend(defaultOpt, option);
         this.option = this.o = defaultOpt;
-        this.$target = $(this.option.target);
+        this.$target = $(this.o.box + ' ' + this.o.item);
         this.curr = 0;
-        this.length = 5;
+        this.length = option.length || this.$target.find('li').length;
+        this.$target.css('-webkit-transition', 'all 1000ms ' + transitionMap[this.o.easing]);
 
         // bind prev and next btn click event
         $(['next', 'prev']).each(function (index, one) {
@@ -61,11 +121,10 @@ define(function (require, exports, module) {
         });
 
         // if set autoplay
-        if (this.option.auto) {
-            setTimeout(function () {
-                _this.autoGo();
-            }, this.o.interval);
-        }
+        this.option.auto && setTimeout(function () {
+            _this.autoGo();
+        }, this.o.interval);
+
         // build dots
         this._buildDots();
     };
@@ -104,7 +163,7 @@ define(function (require, exports, module) {
 
             // stop animation when hover over
             // do not stop until image reaches to the edge
-            this.$target.mouseenter(function () {
+            this.o.hoverStop && this.$target.mouseenter(function () {
                 clearTimeout(_this.timeout);
             }).mouseleave(function () {
                     _this.resume();
@@ -122,30 +181,41 @@ define(function (require, exports, module) {
 
     simpleSlider.prototype.goto = function (index) {
         var _this = this;
-        if (index >= 5) {
+        if (index >= this.length) {
             this.curr = index = 0;
         }
 
         if (index <= -1) {
-            this.curr = index = 4;
+            this.curr = index = this.length - 1;
         }
 
         this.trigger('switch::start', _this.curr);
 
-        this.$target.animate({
-            left: -index * 224
-        }, {
-            duration: _this.option.speed,
-            easing: _this.o.easing,
-            complete: function () {
-                _this.trigger('switch::done', _this.curr);
-                _this.setDotCss(_this.curr);
-            },
-            progress: function (a, b, c) {
-                // @todo when used with css3, can I get the progress?
-                _this.trigger('switch:progress', b);
-            }
-        });
+        // mode::singleImage
+        var style;
+        if (this.o.mode === 'singleImage') {
+            style = {
+                left: -index * 224
+            };
+            this.$target.animate(style, {
+                duration: _this.option.speed,
+                easing: _this.o.easing,
+                complete: function () {
+                    _this.trigger('switch::done', _this.curr);
+                    _this.setDotCss(_this.curr);
+                },
+                progress: function (a, b, c) {
+                    // @todo when used with css3, can I get the progress?
+                    _this.trigger('switch:progress', b);
+                }
+            });
+        }
+
+        if (this.o.mode === 'images') {
+            translate(this.$target, 'X', -index * 200 + 'px');
+        }
+
+
     };
 
     simpleSlider.prototype.next = function () {
