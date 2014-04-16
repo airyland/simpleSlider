@@ -53,16 +53,11 @@ define(function (require, exports, module) {
         this.curr = 0;
         this.length = 5;
 
-        // bind prev and next btn
-        var $next = $('[data-action="next"]');
-        var $prev = $('[data-action="prev"]');
-
-        $next.on('click', function () {
-            _this.next();
-        });
-
-        $prev.on('click', function () {
-            _this.prev();
+        // bind prev and next btn click event
+        $(['next', 'prev']).each(function (index, one) {
+            $(_this.o.box + ' [data-action="' + one + '"]').on('click', function () {
+                _this[one]();
+            });
         });
 
         // if set autoplay
@@ -152,6 +147,10 @@ define(function (require, exports, module) {
             complete: function () {
                 _this.trigger('switch::done', _this.curr);
                 _this.setDotCss(_this.curr);
+            },
+            progress: function (a, b, c) {
+                // @todo when used with css3, can I get the progress?
+                _this.trigger('switch:progress', b);
             }
         });
     };

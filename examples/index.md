@@ -28,6 +28,17 @@
         background:red;
         cursor:pointer;
     }
+    .moe-slider-progress{
+        width:224px;
+        height:2px;
+        border-radius:2px;
+
+    }
+    .moe-slider-progress-inner{
+        width:100%;
+        background:red;
+        height:2px;
+    }
     </style>
 
 ````html
@@ -38,6 +49,10 @@
     <a href="javascript:" data-action="prev">上一个</a>
     <a href="javascript:" data-action="next">下一个</a>
     <div class="dots"></div>
+    <div class="moe-slider-progress">
+        <div class="moe-slider-progress-inner">
+        </div>
+    </div>
 </div>
 <div style="clear:both;"></div>
 ````
@@ -65,6 +80,8 @@ seajs.use('simpleSlider', function(simpleSlider){
     **/
     slider.on('all',function(arg1,arg2){
         console.log(arg1,arg2);
-    });
+    }).on('switch:progress',function(precent){
+        jQuery('.moe-slider-progress-inner').css('width',(1-precent)*100+'%');
+    })
 });
 ````
