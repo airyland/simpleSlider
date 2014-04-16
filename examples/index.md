@@ -39,6 +39,9 @@
         background:red;
         height:2px;
     }
+    .moe-dot-active {
+        background-color:purple;
+    }
     </style>
 
 ````html

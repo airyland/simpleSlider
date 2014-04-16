@@ -88,6 +88,7 @@ define(function (require, exports, module) {
                 'webkit-transition': 'all 200ms ' + this.o.dotsEasing
             });
             _this.$dotItems = $lis;
+            _this.$dots = $lis.find('.dot');
 
             // set the first dot as active
             this.setDotCss(0);
@@ -116,15 +117,7 @@ define(function (require, exports, module) {
             return;
         }
         // switch dot class
-        this.$dotItems.find('.dot').removeClass(this.o.dotsActiveClass).end().eq(index).find('.dot').addClass(this.o.dotsActiveClass);
-
-        this.$dotItems.find('.dot').css({
-            backgroundColor: 'red'
-        });
-
-        this.$dotItems.eq(index).find('.dot').css({
-            backgroundColor: 'purple'
-        });
+        this.$dots.removeClass(this.o.dotsActiveClass).eq(index).addClass(this.o.dotsActiveClass);
     };
 
     simpleSlider.prototype.goto = function (index) {
