@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         startIndex: 0, // first show one
         circular: true, // if play circular,if true, ignore leftDisabledClass and not trigger relative events
         hoverStop: true, // if stop playing when hover on the slider
-        listNo: 3,
+        listNo: 1,
         playNo: 1
     };
 
@@ -111,18 +111,24 @@ define(function (require, exports, module) {
         this.curr = 0;
         this.itemLength = this.$target.find('li').length;
         this.length = option.length || Math.ceil((this.$target.find('li').length - this.o.listNo) / this.o.playNo) + 1;//Math.ceil(this.$target.find('li').length/this.o.listNo);
-        this.lastOffset = -200 * (this.itemLength - this.o.listNo);
+        this.itemWidth = this.$target.find('li').eq(0).width();
+        this.lastOffset = -this.itemWidth * (this.itemLength - this.o.listNo);
         if (this.lastOffset > 0) {
-            this.lastOffset -= lastOffset;
+            this.lastOffset -= this.lastOffset;
         }
-        this.o.mode !== 'singleImage' && this.$target.css('-webkit-transition', 'all 1000ms ' + transitionMap[this.o.easing]);
-
+        this.o.mode !== 'singleImage' && this.$target.css('-webkit-transition', 'all ' + this.o.speed + 'ms ' + transitionMap[this.o.easing]);
         // bind prev and next btn click event
         $(['next', 'prev']).each(function (index, one) {
             $(_this.o.box + ' [data-action="' + one + '"]').on('click', function () {
                 _this[one]();
             });
         });
+
+        this.$index = $(this.o.box + ' [data-fill="index"]');
+        this.$length = $(this.o.box + ' [data-fill="length"]');
+
+        this.$index.text(1);
+        this.$length.text(this.length);
 
         // if set autoplay
         this.option.auto && setTimeout(function () {
@@ -191,6 +197,7 @@ define(function (require, exports, module) {
         _this.curr === _this.length - 1 && _this.trigger('switch::lastone');
         _this.curr === 0 && _this.trigger('switch::firstone');
 
+        this.$index.text(_this.curr + 1);
         this.trigger('switch::start', _this.curr);
         // mode::singleImage
         var style;
@@ -218,7 +225,7 @@ define(function (require, exports, module) {
                 return;
             }
             if (index < this.length - 1) {
-                translate(this.$target, 'X', -index * 200 * this.o.playNo + 'px');
+                translate(this.$target, 'X', -index * this.itemWidth * this.o.playNo + 'px');
             } else {
                 translate(this.$target, 'X', this.lastOffset + 'px');
             }
