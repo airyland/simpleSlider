@@ -110,7 +110,7 @@ define(function (require, exports, module) {
         this.$target = $(this.o.box + ' ' + this.o.item);
         this.curr = 0;
         this.itemLength = this.$target.find('li').length;
-        this.length = option.length || Math.ceil((this.$target.find('li').length - this.o.listNo) / this.o.playNo) + 1;//Math.ceil(this.$target.find('li').length/this.o.listNo);
+        this.length = option.length || Math.ceil((this.$target.find('li').length - this.o.listNo) / this.o.playNo) + 1;
         this.itemWidth = this.$target.find('li').eq(0).width();
         this.lastOffset = -this.itemWidth * (this.itemLength - this.o.listNo);
         if (this.lastOffset > 0) {
@@ -124,11 +124,8 @@ define(function (require, exports, module) {
             });
         });
 
-        this.$index = $(this.o.box + ' [data-fill="index"]');
-        this.$length = $(this.o.box + ' [data-fill="length"]');
-
-        this.$index.text(1);
-        this.$length.text(this.length);
+        this.$index = $(this.o.box + ' [data-fill="index"]').text(1);
+        this.$length = $(this.o.box + ' [data-fill="length"]').text(this.length);
 
         // if set autoplay
         this.option.auto && setTimeout(function () {
