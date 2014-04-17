@@ -44,11 +44,8 @@ define(function (require, exports, module) {
     // translate function
     var translate = function ($target, key, value) {
             var valueTransform = "translate" + key + "(" + value + ")";
-            console.log(valueTransform);
-
             supportAnimation &&
-            $target.css("webkitTransform", valueTransform).css("transform", valueTransform)// :
-            // $target.css(key == "X" ? { left: value } : { top: value });
+            $target.css("webkitTransform", valueTransform).css("transform", valueTransform);
         },
         transition = function (target, duration, isReset) {
             var transform = "transform " + duration + "ms linear";
@@ -81,22 +78,24 @@ define(function (require, exports, module) {
     Events.mixTo(simpleSlider);
 
     var defaultOpt = {
-        auto: true,  // auto play
-        speed: 1000,// animation duratin
+        auto: true, // auto play
+        speed: 1000, // animation duratin
         interval: 2000, // time delay
-        easing: 'linear',// easing
-        leftDisabledClass: '',// when scroll to the first one, add the class
-        rightDisabledClass: '',// when scroll to the last one, add the class
+        easing: 'linear', // easing
+        leftDisabledClass: '', // when scroll to the first one, add the class
+        rightDisabledClass: '', // when scroll to the last one, add the class
         box: '#moe-slider-box', // sliders box, used for select prev and next button
         item: '>.slider-wrap>li',
-        dotsContainer: '',// if specified, create dots list in the container,
-        dotsEasing: 'linear',// can be styled in css or specified hear,
-        dotsActiveClass: 'moe-dot-active',// dot active class
+        dotsContainer: '', // if specified, create dots list in the container,
+        dotsEasing: 'linear', // can be styled in css or specified hear,
+        dotsActiveClass: 'moe-dot-active', // dot active class
         dotsTriggerEvent: 'click',
         mode: 'images', // 'singleImage','images'
-        startIndex: 0,// first show one
+        startIndex: 0, // first show one
         circular: true, // if play circular,if true, ignore leftDisabledClass and not trigger relative events
-        hoverStop: true   // if stop playing when hover on the slider
+        hoverStop: true, // if stop playing when hover on the slider
+        listNo: 3,
+        playNo: 1
     };
 
     var singleImageSwitch = function () {
@@ -110,8 +109,13 @@ define(function (require, exports, module) {
         this.option = this.o = defaultOpt;
         this.$target = $(this.o.box + ' ' + this.o.item);
         this.curr = 0;
-        this.length = option.length || this.$target.find('li').length;
-        this.$target.css('-webkit-transition', 'all 1000ms ' + transitionMap[this.o.easing]);
+        this.itemLength = this.$target.find('li').length;
+        this.length = option.length || Math.ceil((this.$target.find('li').length - this.o.listNo) / this.o.playNo) + 1;//Math.ceil(this.$target.find('li').length/this.o.listNo);
+        this.lastOffset = -200 * (this.itemLength - this.o.listNo);
+        if (this.lastOffset > 0) {
+            this.lastOffset -= lastOffset;
+        }
+        this.o.mode !== 'singleImage' && this.$target.css('-webkit-transition', 'all 1000ms ' + transitionMap[this.o.easing]);
 
         // bind prev and next btn click event
         $(['next', 'prev']).each(function (index, one) {
@@ -181,16 +185,13 @@ define(function (require, exports, module) {
 
     simpleSlider.prototype.goto = function (index) {
         var _this = this;
-        if (index >= this.length) {
-            this.curr = index = 0;
-        }
+        (index >= this.length) && (this.curr = index = 0);
+        (index <= -1) && (this.curr = index = this.length - 1);
 
-        if (index <= -1) {
-            this.curr = index = this.length - 1;
-        }
+        _this.curr === _this.length - 1 && _this.trigger('switch::lastone');
+        _this.curr === 0 && _this.trigger('switch::firstone');
 
         this.trigger('switch::start', _this.curr);
-
         // mode::singleImage
         var style;
         if (this.o.mode === 'singleImage') {
@@ -212,10 +213,16 @@ define(function (require, exports, module) {
         }
 
         if (this.o.mode === 'images') {
-            translate(this.$target, 'X', -index * 200 + 'px');
+            if (index === 1 && this.length === 2) {
+                translate(this.$target, 'X', this.lastOffset + 'px');
+                return;
+            }
+            if (index < this.length - 1) {
+                translate(this.$target, 'X', -index * 200 * this.o.playNo + 'px');
+            } else {
+                translate(this.$target, 'X', this.lastOffset + 'px');
+            }
         }
-
-
     };
 
     simpleSlider.prototype.next = function () {
