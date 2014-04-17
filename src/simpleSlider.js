@@ -8,6 +8,8 @@ define(function (require, exports, module) {
     var Events = require('arale/events/1.1.0/events');
     // check if support css3 animation
     var supportAnimation = typeof history.pushState === "function";
+    // event namespace
+    var eventNamespace = '.moe-slider';
     // css3 transition map
     var transitionMap = {
         'linear': 'linear',
@@ -116,10 +118,15 @@ define(function (require, exports, module) {
         if (this.lastOffset > 0) {
             this.lastOffset -= this.lastOffset;
         }
+
+        this.$target.css({
+            width: this.itemLength * this.itemWidth + 'px'
+        });
+
         this.o.mode !== 'singleImage' && this.$target.css('-webkit-transition', 'all ' + this.o.speed + 'ms ' + transitionMap[this.o.easing]);
         // bind prev and next btn click event
         $(['next', 'prev']).each(function (index, one) {
-            $(_this.o.box + ' [data-action="' + one + '"]').on('click', function () {
+            $(_this.o.box + ' [data-action="' + one + '"]').on('click' + eventNamespace, function () {
                 _this[one]();
             });
         });
@@ -159,7 +166,7 @@ define(function (require, exports, module) {
             // set the first dot as active
             this.setDotCss(0);
 
-            $lis.on(_this.o.dotsTriggerEvent, function () {
+            $lis.on(_this.o.dotsTriggerEvent.split(' ').join(eventNamespace + ' ') + eventNamespace, function () {
                 var index = $(this).index('.slider_dots>li.dot-item');
                 _this.curr = index;
                 _this.stop();
